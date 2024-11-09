@@ -8,11 +8,18 @@ from datetime import datetime, timedelta
 import sqlite3
 import logging
 from functools import wraps
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+if __name__ == '__main__':
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
 app.secret_key = os.urandom(24)
 
 # Constants
@@ -642,4 +649,5 @@ def internal_error(error):
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+    
     
