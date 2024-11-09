@@ -1,0 +1,61 @@
+<!-- templates/admin_login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Notes App - Admin Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Reuse the same CSS from login.html -->
+    <style>
+        /* Copy all the CSS from login.html */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="typing-effect">Admin Panel</h1>
+        
+        <div class="card">
+            <h2>Admin Login</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#adminLoginForm').submit(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/admin/login',
+                    method: 'POST',
+                    data: {
+                        username: $('#username').val(),
+                        password: $('#password').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = '/admin/dashboard';
+                        }
+                    },
+                    error: function(xhr) {
+                        const response = JSON.parse(xhr.responseText);
+                        $('#errorMessage').text(response.error).show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

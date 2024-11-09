@@ -1,0 +1,407 @@
+<!-- templates/admin_dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Notes App - Admin Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Reuse the same CSS from dashboard.html with additions -->
+    <style>
+        /* Copy all the CSS from dashboard.html */
+        
+        /* Additional admin-specific styles */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+        
+        .user-table th {
+            background-color: var(--bg-secondary);
+            color: var(--accent);
+        }
+        
+        .user-row:hover {
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+        }
+        
+        .notes-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .admin-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .search-bar {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-bar input {
+            flex: 1;
+        }
+
+        .code-block {
+            background-color: var(--bg-primary);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 5px 0;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 5px 10px;
+        }
+
+        .user-details {
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: var(--bg-primary);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="typing-effect">Admin Dashboard</h1>
+            <div class="admin-actions">
+                <button onclick="refreshData()">Refresh Data</button>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="admin-stats" id="statsContainer">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <div class="card">
+            <h2>User Management</h2>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search users...">
+                <button onclick="searchUsers()">Search</button>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Created At</th>
+                        <th>Last Login</th>
+                        <th>Note Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- Users will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <!-- Pagination controls will be added here -->
+            </div>
+        </div>
+
+        <div class="notes-preview" id="notesPreview">
+            <h3>User Notes</h3>
+            <div id="userNotes">
+                <!-- Selected user's notes will be displayed here -->
+            </div>
+        </div>
+
+        <div class="user-details" id="userDetails" style="display: none;">
+            <h3>User Details</h3>
+            <div id="userInfo">
+                <!-- Detailed user information will be displayed here -->
+            </div>
+            <h4>Activity Log</h4>
+            <div class="activity-log" id="activityLog">
+                <!-- User activity log will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function loadStats() {
+            $.ajax({
+                url: '/admin/stats',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const stats = response.stats;
+                        $('#statsContainer').html(`
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.total_users}</div>
+                                <div>Total Users</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.total_notes}</div>
+                                <div>Total Notes</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.active_users}</div>
+                                <div>Active Users (7d)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.recent_signups}</div>
+                                <div>New Users (24h)</div>
+                            </div>
+                        `);
+                    }
+                }
+            });
+        }
+
+        function loadUsers(page = 1) {
+            currentPage = page;
+            $.ajax({
+                url: '/admin/users',
+                method: 'GET',
+                data: { page: page, per_page: itemsPerPage },
+                success: function(response) {
+                    if (response.success) {
+                        const tableBody = $('#userTableBody');
+                        tableBody.empty();
+                        
+                        response.users.forEach(user => {
+                            tableBody.append(`
+                                <tr class="user-row">
+                                    <td>${escapeHtml(user.username)}</td>
+                                    <td>${formatDate(user.created_at)}</td>
+                                    <td>${user.last_login ? formatDate(user.last_login) : 'Never'}</td>
+                                    <td>${user.note_count}</td>
+                                    <td>
+                                        <button onclick="viewUserNotes('${user.username}')">View Notes</button>
+                                        <button onclick="viewUserDetails('${user.username}')">Details</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        updatePagination(response.total_pages);
+                    }
+                }
+            });
+        }
+
+        function updatePagination(totalPages) {
+            const pagination = $('#pagination');
+            pagination.empty();
+
+            if (currentPage > 1) {
+                pagination.append(`
+                    <button onclick="loadUsers(${currentPage - 1})">Previous</button>
+                `);
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                pagination.append(`
+                    <button onclick="loadUsers(${i})" 
+                            ${i === currentPage ? 'disabled' : ''}>
+                        ${i}
+                    </button>
+                `);
+            }
+
+            if (currentPage < totalPages) {
+                pagination.append(`
+                    <button onclick="loadUsers(${currentPage + 1})">Next</button>
+                `);
+            }
+        }
+
+        function viewUserNotes(username) {
+            $.ajax({
+                url: `/admin/user/${username}/notes`,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const notesDiv = $('#userNotes');
+                        notesDiv.empty();
+                        
+                        if (response.notes.length === 0) {
+                            notesDiv.html('<p>No notes found for this user.</p>');
+                        } else {
+                            response.notes.forEach(note => {
+                                notesDiv.append(`
+                                    <div class="note">
+                                        <div class="content">
+                                            <strong>Note ID:</strong> ${note.id}<br>
+                                            <strong>Created:</strong> ${formatDate(note.created_at)}<br>
+                                            <strong>Encrypted Content:</strong> 
+                                            <div class="code-block">${escapeHtml(note.encrypted_content)}</div>
+                                        </div>
+                                    </div>
+                                `);
+                            });
+                        }
+                        
+                        $('#notesPreview').show();
+                        $('#userDetails').hide();
+                    }
+                }
+            });
+        }
+
+        function viewUserDetails(username) {
+            // Hide notes preview and show user details
+            $('#notesPreview').hide();
+            $('#userDetails').show();
+            
+            // Load and display user details
+            $.ajax({
+                url: `/admin/user/${username}/details`,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const userInfo = response.user;
+                        $('#userInfo').html(`
+                            <p><strong>Username:</strong> ${escapeHtml(userInfo.username)}</p>
+                            <p><strong>Created:</strong> ${formatDate(userInfo.created_at)}</p>
+                            <p><strong>Last Login:</strong> ${userInfo.last_login ? formatDate(userInfo.last_login) : 'Never'}</p>
+                            <p><strong>Total Notes:</strong> ${userInfo.note_count}</p>
+                            <p><strong>Storage Used:</strong> ${userInfo.storage_used}</p>
+                        `);
+
+                        // Display activity log
+                        const activityLog = $('#activityLog');
+                        activityLog.empty();
+                        userInfo.activity.forEach(activity => {
+                            activityLog.append(`
+                                <div class="activity-entry">
+                                    <strong>${formatDate(activity.timestamp)}</strong>: ${activity.action}
+                                </div>
+                            `);
+                        });
+                    }
+                }
+            });
+        }
+
+        function searchUsers() {
+            const searchTerm = $('#searchInput').val();
+            $.ajax({
+                url: '/admin/users/search',
+                method: 'GET',
+                data: { q: searchTerm },
+                success: function(response) {
+                    if (response.success) {
+                        const tableBody = $('#userTableBody');
+                        tableBody.empty();
+                        
+                        response.users.forEach(user => {
+                            tableBody.append(`
+                                <tr class="user-row">
+                                    <td>${escapeHtml(user.username)}</td>
+                                    <td>${formatDate(user.created_at)}</td>
+                                    <td>${user.last_login ? formatDate(user.last_login) : 'Never'}</td>
+                                    <td>${user.note_count}</td>
+                                    <td>
+                                        <button onclick="viewUserNotes('${user.username}')">View Notes</button>
+                                        <button onclick="viewUserDetails('${user.username}')">Details</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                }
+            });
+        }
+
+        function refreshData() {
+            loadStats();
+            loadUsers(currentPage);
+        }
+
+        function logout() {
+            window.location.href = '/admin/logout';
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        // Initialize dashboard
+        $(document).ready(function() {
+            loadStats();
+            loadUsers();
+            
+            // Add search input handler
+            $('#searchInput').on('keypress', function(e) {
+                if (e.which === 13) {
+                    searchUsers();
+                }
+            });
+            
+            // Refresh data every 30 seconds
+            setInterval(refreshData, 30000);
+        });
+    </script>
+</body>
+</html>

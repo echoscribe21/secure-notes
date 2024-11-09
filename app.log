@@ -1,0 +1,22 @@
+2024-11-09 20:01:55,783 [INFO] - Database initialized successfully
+2024-11-09 20:01:55,812 [INFO] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-09 20:01:55,812 [INFO] - [33mPress CTRL+C to quit[0m
+2024-11-09 20:01:55,812 [INFO] -  * Restarting with stat
+2024-11-09 20:01:55,914 [INFO] - Database initialized successfully
+2024-11-09 20:01:55,927 [WARNING] -  * Debugger is active!
+2024-11-09 20:01:55,934 [INFO] -  * Debugger PIN: 110-556-344
+2024-11-09 20:02:01,620 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:02:01] "GET / HTTP/1.1" 200 -
+2024-11-09 20:02:02,729 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:02:02] "GET / HTTP/1.1" 200 -
+2024-11-09 20:03:39,406 [INFO] - Database initialized successfully
+2024-11-09 20:03:39,438 [INFO] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-09 20:03:39,438 [INFO] - [33mPress CTRL+C to quit[0m
+2024-11-09 20:03:39,439 [INFO] -  * Restarting with stat
+2024-11-09 20:03:39,539 [INFO] - Database initialized successfully
+2024-11-09 20:03:39,558 [WARNING] -  * Debugger is active!
+2024-11-09 20:03:39,564 [INFO] -  * Debugger PIN: 110-556-344
+2024-11-09 20:03:47,578 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:03:47] "GET / HTTP/1.1" 200 -
+2024-11-09 20:06:23,844 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:06:23] "GET / HTTP/1.1" 200 -
+2024-11-09 20:06:39,354 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:06:39] "GET / HTTP/1.1" 200 -
+2024-11-09 20:06:55,624 [INFO] - 127.0.0.1 - - [09/Nov/2024 20:06:55] "GET / HTTP/1.1" 200 -
