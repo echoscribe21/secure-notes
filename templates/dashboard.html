@@ -6,295 +6,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Notes App - Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-   <!-- Add this to the head section of both login.html and dashboard.html -->
-<style>
-    :root {
-        /* Light theme variables */
-        --bg-primary-light: #f0f2f5;
-        --bg-secondary-light: #ffffff;
-        --text-primary-light: #333333;
-        --text-secondary-light: #666666;
-        --accent-light: #1a73e8;
-        --border-light: #dddddd;
-
-        /* Dark/Hacker theme variables */
-        --bg-primary-dark: #0a0f16;
-        --bg-secondary-dark: #1a1f26;
-        --text-primary-dark: #00ff00;
-        --text-secondary-dark: #00cc00;
-        --accent-dark: #00ff00;
-        --border-dark: #2a2f36;
-        
-        /* Terminal theme variables */
-        --bg-primary-terminal: #000000;
-        --bg-secondary-terminal: #0c0c0c;
-        --text-primary-terminal: #00ff00;
-        --text-secondary-terminal: #00cc00;
-        --accent-terminal: #ff0000;
-        --border-terminal: #333333;
-
-        /* Default theme */
-        --bg-primary: var(--bg-primary-dark);
-        --bg-secondary: var(--bg-secondary-dark);
-        --text-primary: var(--text-primary-dark);
-        --text-secondary: var(--text-secondary-dark);
-        --accent: var(--accent-dark);
-        --border: var(--border-dark);
-    }
-
-    body {
-        font-family: 'Courier New', monospace;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        margin: 0;
-        padding: 20px;
-        transition: all 0.3s ease;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .theme-switcher {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-    }
-
-    .theme-btn {
-        background-color: var(--bg-secondary);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        padding: 8px 12px;
-        margin-left: 5px;
-        cursor: pointer;
-        font-family: 'Courier New', monospace;
-        border-radius: 4px;
-    }
-
-    .theme-btn:hover {
-        background-color: var(--accent);
-        color: var(--bg-primary);
-    }
-
-    .card {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 255, 0, 0.1);
-    }
-
-    input, textarea {
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        width: 100%;
-        box-sizing: border-box;
-        border-radius: 4px;
-    }
-
-    input:focus, textarea:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 5px var(--accent);
-    }
-
-    button {
-        background-color: transparent;
-        color: var(--accent);
-        border: 1px solid var(--accent);
-        padding: 10px 20px;
-        cursor: pointer;
-        font-family: 'Courier New', monospace;
-        transition: all 0.3s ease;
-        border-radius: 4px;
-    }
-
-    button:hover {
-        background-color: var(--accent);
-        color: var(--bg-primary);
-    }
-
-    .note {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .note .timestamp {
-        color: var(--text-secondary);
-        font-size: 0.8em;
-        margin-top: 5px;
-    }
-
-    .error-message {
-        color: #ff0000;
-        background-color: rgba(255, 0, 0, 0.1);
-        border: 1px solid #ff0000;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 4px;
-    }
-
-    .success-message {
-        color: #00ff00;
-        background-color: rgba(0, 255, 0, 0.1);
-        border: 1px solid #00ff00;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 4px;
-    }
-
-    /* Matrix animation background */
-    .matrix-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        opacity: 0.1;
-    }
-
-    /* Security indicators */
-    .security-indicator {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: var(--bg-secondary);
-        padding: 10px;
-        border-radius: 4px;
-        border: 1px solid var(--accent);
-        font-size: 0.8em;
-    }
-
-    /* Typing effect for headings */
-    .typing-effect {
-        overflow: hidden;
-        border-right: 2px solid var(--accent);
-        white-space: nowrap;
-        animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
-    }
-
-    @keyframes typing {
-        from { width: 0 }
-        to { width: 100% }
-    }
-
-    @keyframes blink-caret {
-        from, to { border-color: transparent }
-        50% { border-color: var(--accent) }
-    }
-</style>
-
-<!-- Add this right after the body tag in both files -->
-<canvas id="matrix-bg" class="matrix-bg"></canvas>
-<div class="theme-switcher">
-    <button class="theme-btn" onclick="setTheme('dark')">Dark</button>
-    <button class="theme-btn" onclick="setTheme('terminal')">Terminal</button>
-    <button class="theme-btn" onclick="setTheme('light')">Light</button>
-</div>
-
-<!-- Add this right before the closing body tag -->
-<div class="security-indicator">
-    <span id="encryption-status">🔒 AES-256 Encryption</span>
-    <br>
-    <span id="connection-status">🌐 Secure Connection</span>
-</div>
-
-<script>
-// Theme switcher functionality
-function setTheme(theme) {
-    const root = document.documentElement;
-    
-    switch(theme) {
-        case 'dark':
-            root.style.setProperty('--bg-primary', 'var(--bg-primary-dark)');
-            root.style.setProperty('--bg-secondary', 'var(--bg-secondary-dark)');
-            root.style.setProperty('--text-primary', 'var(--text-primary-dark)');
-            root.style.setProperty('--text-secondary', 'var(--text-secondary-dark)');
-            root.style.setProperty('--accent', 'var(--accent-dark)');
-            root.style.setProperty('--border', 'var(--border-dark)');
-            break;
-        case 'terminal':
-            root.style.setProperty('--bg-primary', 'var(--bg-primary-terminal)');
-            root.style.setProperty('--bg-secondary', 'var(--bg-secondary-terminal)');
-            root.style.setProperty('--text-primary', 'var(--text-primary-terminal)');
-            root.style.setProperty('--text-secondary', 'var(--text-secondary-terminal)');
-            root.style.setProperty('--accent', 'var(--accent-terminal)');
-            root.style.setProperty('--border', 'var(--border-terminal)');
-            break;
-        case 'light':
-            root.style.setProperty('--bg-primary', 'var(--bg-primary-light)');
-            root.style.setProperty('--bg-secondary', 'var(--bg-secondary-light)');
-            root.style.setProperty('--text-primary', 'var(--text-primary-light)');
-            root.style.setProperty('--text-secondary', 'var(--text-secondary-light)');
-            root.style.setProperty('--accent', 'var(--accent-light)');
-            root.style.setProperty('--border', 'var(--border-light)');
-            break;
-    }
-    
-    localStorage.setItem('preferred-theme', theme);
-}
-
-// Matrix background effect
-const canvas = document.getElementById('matrix-bg');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const letters = '0123456789ABCDEF';
-const fontSize = 10;
-const columns = canvas.width / fontSize;
-
-const drops = [];
-for (let i = 0; i < columns; i++) {
-    drops[i] = 1;
-}
-
-function drawMatrix() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = '#0F0';
-    ctx.font = fontSize + 'px monospace';
-
-    for (let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
+    <style>
+        /* Your existing styles */
+        :root {
+            /* Keep all your existing root variables */
+            /* Add these new variables for attachment elements */
+            --attachment-bg-light: #f5f5f5;
+            --attachment-bg-dark: #1d2229;
+            --attachment-bg-terminal: #0f0f0f;
         }
-        drops[i]++;
-    }
-}
 
-setInterval(drawMatrix, 33);
+        /* Keep all your existing styles */
 
-// Load preferred theme
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('preferred-theme') || 'dark';
-    setTheme(savedTheme);
-});
+        /* Add these new styles for attachments */
+        .note-attachments {
+            margin-top: 10px;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+        }
 
-// Window resize handler for matrix background
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-</script>
+        .attachment-upload {
+            margin-bottom: 10px;
+        }
+
+        .upload-btn {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .upload-btn:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .upload-status {
+            margin-left: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .attachment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .attachment-item:hover {
+            background-color: var(--bg-primary);
+        }
+
+        .attachment-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .download-btn {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .delete-btn {
+            background-color: transparent;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #ff4444;
+            color: var(--bg-primary);
+        }
+    </style>
+    <!-- Keep all your existing head content -->
 </head>
 <body>
+    <!-- Keep your existing canvas and theme switcher -->
+    <canvas id="matrix-bg" class="matrix-bg"></canvas>
+    <div class="theme-switcher">
+        <button class="theme-btn" onclick="setTheme('dark')">Dark</button>
+        <button class="theme-btn" onclick="setTheme('terminal')">Terminal</button>
+        <button class="theme-btn" onclick="setTheme('light')">Light</button>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>Secure Notes</h1>
@@ -319,44 +140,16 @@ window.addEventListener('resize', () => {
         </div>
     </div>
 
+    <div class="security-indicator">
+        <span id="encryption-status">🔒 AES-256 Encryption</span>
+        <br>
+        <span id="connection-status">🌐 Secure Connection</span>
+    </div>
+
     <script>
-        // Check for saved decryption key and auto-fill if available
-        $(document).ready(function() {
-            const savedKey = localStorage.getItem('decryptionKey');
-            if (savedKey) {
-                $('#decryptionKey').val(savedKey);
-                viewNotes(); // Automatically load notes if key is available
-            }
-        });
+        // Keep all your existing scripts and functions
 
-        function createNote() {
-            const content = $('#noteContent').val();
-            if (!content) {
-                $('#createErrorMessage').text('Please enter some content for your note.').show();
-                return;
-            }
-
-            $.ajax({
-                url: '/create_note',
-                method: 'POST',
-                data: { content: content },
-                success: function(response) {
-                    $('#createSuccessMessage').text('Note created successfully!').show();
-                    $('#createErrorMessage').hide();
-                    $('#noteContent').val('');
-                    viewNotes(); // Refresh notes list
-                    setTimeout(() => {
-                        $('#createSuccessMessage').hide();
-                    }, 3000);
-                },
-                error: function(xhr) {
-                    const response = JSON.parse(xhr.responseText);
-                    $('#createErrorMessage').text(response.error).show();
-                    $('#createSuccessMessage').hide();
-                }
-            });
-        }
-
+        // Update the viewNotes function to include attachments
         function viewNotes() {
             const decryptionKey = $('#decryptionKey').val();
             if (!decryptionKey) {
@@ -374,14 +167,32 @@ window.addEventListener('resize', () => {
                     notesContainer.empty();
 
                     if (response.success && response.notes.length > 0) {
-                        response.notes.forEach(note => {
+                        response.notes.forEach((note, index) => {
                             const noteElement = $('<div class="note"></div>');
                             noteElement.html(`
                                 <div class="content">${escapeHtml(note.content)}</div>
                                 <div class="timestamp">Created: ${formatDate(note.created_at)}</div>
+                                <div class="note-attachments" id="attachments-section-${index}">
+                                    <div class="attachment-upload">
+                                        <form id="upload-form-${index}" class="upload-form" enctype="multipart/form-data">
+                                            <input type="file" id="file-input-${index}" name="file" 
+                                                   style="display: none;" onchange="handleFileSelect(${index})">
+                                            <button type="button" class="upload-btn" 
+                                                    onclick="document.getElementById('file-input-${index}').click()">
+                                                📎 Add Attachment
+                                            </button>
+                                            <span class="upload-status" id="upload-status-${index}"></span>
+                                        </form>
+                                    </div>
+                                    <div class="attachments-list" id="attachments-list-${index}"></div>
+                                </div>
                             `);
                             notesContainer.append(noteElement);
+                            loadAttachments(index);
                         });
+
+                        // Save decryption key for auto-fill
+                        localStorage.setItem('decryptionKey', decryptionKey);
                     } else {
                         notesContainer.html('<p>No notes found. Create your first note above!</p>');
                     }
@@ -393,24 +204,91 @@ window.addEventListener('resize', () => {
             });
         }
 
-        function logout() {
-            localStorage.removeItem('decryptionKey'); // Clear saved key
-            window.location.href = '/logout';
+        // Add these new functions for attachment handling
+        function handleFileSelect(noteId) {
+            const fileInput = document.getElementById(`file-input-${noteId}`);
+            if (fileInput.files.length > 0) {
+                uploadAttachment(noteId, fileInput.files[0]);
+            }
         }
 
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        async function uploadAttachment(noteId, file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const statusElement = document.getElementById(`upload-status-${noteId}`);
+            statusElement.textContent = 'Uploading...';
+            
+            try {
+                const response = await fetch(`/note/${noteId}/attach`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) throw new Error(result.error || 'Upload failed');
+                
+                statusElement.textContent = 'Upload successful!';
+                loadAttachments(noteId);
+                
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 3000);
+            } catch (error) {
+                statusElement.textContent = 'Upload failed: ' + error.message;
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 5000);
+            }
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString();
+        async function loadAttachments(noteId) {
+            try {
+                const response = await fetch(`/note/${noteId}/attachments`);
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.error || 'Failed to load attachments');
+                
+                const listElement = document.getElementById(`attachments-list-${noteId}`);
+                
+                if (data.attachments.length === 0) {
+                    listElement.innerHTML = '<p style="color: var(--text-secondary);">No attachments yet</p>';
+                    return;
+                }
+                
+                listElement.innerHTML = data.attachments.map(att => `
+                    <div class="attachment-item">
+                        <span>${escapeHtml(att.filename)}</span>
+                        <div class="attachment-actions">
+                            <a href="/attachment/${att.id}/download" class="download-btn">📥 Download</a>
+                            <button onclick="deleteAttachment(${att.id}, ${noteId})" class="delete-btn">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load attachments:', error);
+            }
         }
+
+        async function deleteAttachment(attachmentId, noteId) {
+            if (!confirm('Are you sure you want to delete this attachment?')) return;
+            
+            try {
+                const response = await fetch(`/attachment/${attachmentId}/delete`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete attachment');
+                
+                loadAttachments(noteId);
+            } catch (error) {
+                console.error('Failed to delete attachment:', error);
+                alert('Failed to delete attachment: ' + error.message);
+            }
+        }
+
+        // Keep all your other existing scripts
     </script>
 </body>
 </html>
