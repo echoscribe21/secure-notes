@@ -89,7 +89,11 @@ def init_db():
         
         conn.commit()
         logging.debug('Database initialized successfully with admin account')
-
+@app.route('/')
+def home():
+    if 'username' in session:
+        return render_template('dashboard.html')
+    return render_template('login.html')
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
