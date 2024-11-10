@@ -10,6 +10,7 @@ import logging
 from functools import wraps
 from werkzeug.utils import secure_filename
 import io
+import traceback
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables
@@ -94,6 +95,81 @@ def home():
     if 'username' in session:
         return render_template('dashboard.html')
     return render_template('login.html')
+@app.route('/signup', methods=['POST'])
+def signup():
+    try:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        logging.info(f"Signup attempt for username: {username}")
+        
+        if not username or not password:
+            logging.warning("Signup failed: Missing username or password")
+            return jsonify({'error': 'Username and password are required'}), 400
+        
+        valid, msg = validate_password(password)
+        if not valid:
+            logging.warning(f"Signup failed: Invalid password - {msg}")
+            return jsonify({'error': msg}), 400
+        
+        with get_db() as conn:
+            c = conn.cursor()
+            
+            # Check if username exists
+            if c.execute('SELECT 1 FROM users WHERE username = ?', (username,)).fetchone():
+                logging.warning(f"Signup failed: Username {username} already exists")
+                return jsonify({'error': 'Username already exists'}), 400
+            
+            decryption_key = secrets.token_hex(16)
+            password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+            
+            c.execute('''
+                INSERT INTO users (username, password_hash, decryption_key, created_at) 
+                VALUES (?, ?, ?, ?)
+            ''', (username, password_hash, decryption_key, datetime.now()))
+            
+            log_activity(username, "Account created")
+            session['username'] = username
+            
+            logging.info(f"Signup successful for username: {username}")
+            return jsonify({
+                'success': True,
+                'decryption_key': decryption_key,
+                'message': 'Account created successfully. SAVE YOUR DECRYPTION KEY!'
+            })
+            
+    except Exception as e:
+        logging.error(f"Signup error: {str(e)}\n{traceback.format_exc()}")
+        return jsonify({'error': 'Registration failed'}), 500
+    
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        logging.info(f"Login attempt for username: {username}")
+
+        if not username or not password:
+            logging.warning("Login failed: Missing username or password")
+            return jsonify({'error': 'Username and password are required'}), 400
+
+        with get_db() as conn:
+            c = conn.cursor()
+            user = c.execute('SELECT password_hash FROM users WHERE username = ?', (username,)).fetchone()
+
+            if user and bcrypt.checkpw(password.encode(), user['password_hash']):
+                c.execute('UPDATE users SET last_login = ? WHERE username = ?', (datetime.now(), username))
+                session['username'] = username
+                log_activity(username, "Logged in")
+                logging.info(f"Login successful for username: {username}")
+                return jsonify({'success': True})
+
+        logging.warning(f"Login failed: Invalid credentials for username: {username}")
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    except Exception as e:
+        logging.error(f"Login error: {str(e)}\n{traceback.format_exc()}")
+        return jsonify({'error': 'Login failed'}), 500
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
